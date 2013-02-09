@@ -231,7 +231,7 @@ class Task(object):
         Generate a ninja build file, returning the value as a string.
         """
         buff = BytesIO()
-        writer = ns.Writer(buff)
+        writer = Writer(buff)
 
         # Generate all rules.
         for func, kwargs in self.rules:
