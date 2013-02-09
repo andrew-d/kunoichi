@@ -1,15 +1,22 @@
-from kunoichi import Task
+from kunoichi import Task, config, do_config
 from glob import iglob
+
+@config
+def set_flags(cfg):
+    cfg.c.CFLAGS = '/nologo /MTd /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /c'
+    cfg.c.LFLAGS = '/nologo'
+    cfg.c.LIBFLAGS = '/nologo'
+
 
 t = Task('build_luajit')
 
 @t.rule
 def cc(cfg):
-    return 'cl /nologo /c /Fo$out $in'
+    return 'cl %s /Fo$out $in' % (cfg.c.CFLAGS,)
 
 @t.rule(rspfile='$out.rsp', rspfile_content='$in')
 def link(cfg):
-    return 'link /nologo /out:$out @$out.rsp'
+    return 'link %s /out:$out @$out.rsp' % (cfg.c.LFLAGS,)
 
 @t.rule
 def mt(cfg):
@@ -17,7 +24,7 @@ def mt(cfg):
 
 @t.rule(rspfile='$out.rsp', rspfile_content='$in')
 def lib(cfg):
-    return 'lib /nologo /out:$out @$out.rsp'
+    return 'lib {cfg.c.LFLAGS} /out:$out @$out.rsp'
 
 
 @t.build
@@ -33,4 +40,5 @@ def build_luajit(cfg):
         yield ('foobar', 'other', f)
 
 
-print t.generate(None)
+cfg = do_config()
+print t.generate(cfg)

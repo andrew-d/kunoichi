@@ -1,10 +1,20 @@
 from io import BytesIO
-from collections import Iterable
+from collections import defaultdict, Iterable
 
 import ninja_syntax as ns
 
-_config_functions = []
 
+class _attrdict(defaultdict):
+    """A simple autovivifying dict()"""
+    def __getattr__(self, key): return self[key]
+    def __setattr__(self, key, val): self[key]=val
+
+def attrdict():
+    """A simple autovivifying dict()"""
+    return _attrdict(attrdict)
+
+
+_config_functions = []
 def config(func):
     """
     This function defines a configuration method that is called before any
@@ -12,6 +22,17 @@ def config(func):
     """
     _config_functions.append(func)
     return func
+
+
+def do_config():
+    """
+    Run all configuration functions in the order they were defined.
+    """
+    config_obj = attrdict()
+    for func in _config_functions:
+        func(config_obj)
+
+    return config_obj
 
 
 class Task(object):
@@ -65,8 +86,10 @@ class Task(object):
                 desc = func.__doc__ if func.__doc__ is not None else ''
             kwargs['description'] = desc
 
-            # Write the actual rule.
-            writer.rule(func.__name__, func(config), **kwargs)
+            # Get the rule.
+            cmd = func(config)
+            cmd = cmd.format(cfg=config)
+            writer.rule(func.__name__, cmd, **kwargs)
 
         # Generate all build rules.
         for func in self.funcs:
