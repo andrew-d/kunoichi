@@ -204,6 +204,7 @@ class Task(object):
         self.name = name
         self.funcs = []
         self.rules = []
+        self.vars  = []
 
     def build(self, func):
         """
@@ -226,12 +227,19 @@ class Task(object):
 
             return _wrapper
 
+    def variable(self, key, value):
+        self.vars.append((key, value))
+
     def generate(self, config):
         """
         Generate a ninja build file, returning the value as a string.
         """
         buff = BytesIO()
         writer = Writer(buff)
+
+        # Generate all variables.
+        for key, val in self.vars:
+            writer.variable(key, val)
 
         # Generate all rules.
         for func, kwargs in self.rules:

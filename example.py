@@ -12,15 +12,15 @@ t = Task('build_luajit')
 
 @t.rule
 def cc(cfg):
-    return 'cl %s /Fo$out $in' % (cfg.c.CFLAGS,)
+    return 'cl {cfg.c.CFLAGS} /Fo$out $in'
 
 @t.rule(rspfile='$out.rsp', rspfile_content='$in')
 def link(cfg):
-    return 'link %s /out:$out @$out.rsp' % (cfg.c.LFLAGS,)
+    return 'link {cfg.c.LFLAGS} /out:$out @$out.rsp'
 
 @t.rule
 def mt(cfg):
-    return 'cmd /c if exist $in (mt /nologo -manifest $in -outputresource:$out'
+    return 'cmd /c if exist $in (mt /nologo -manifest $in -outputresource:$out)'
 
 @t.rule(rspfile='$out.rsp', rspfile_content='$in')
 def lib(cfg):
